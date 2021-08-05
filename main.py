@@ -66,7 +66,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                             {'type':'list','name':'result', 'height': 48, 'itemheight':48, 'itemlayout': result_layout, ':value': 'result','marginSize':5},
                             {'type':'space', 'height':10},   
                             {'type':'label','name': '收藏列表', 'height':30},  
-                            {'type':'list','name':'favs', 'itemheight':48, 'itemlayout': favs_layout, 'width': 0.8, ':value': 'favs','marginSize':5},                              
+                            {'type':'list','name':'favs', 'itemheight':48, 'itemlayout': favs_layout, 'width': 0.8, ':value': 'favs','marginSize':5, 'separator': True},                              
                         ],
                         'dir':'vertical',
                         'width': 0.8,
