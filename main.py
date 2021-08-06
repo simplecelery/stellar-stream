@@ -3,6 +3,7 @@ import StellarPlayer
 import importlib
 import requests
 import json
+import inspect
 
 from bs4 import BeautifulSoup as bs
 from .sites import match
@@ -79,27 +80,42 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         result, controls = self.doModal('main', 800, 600, '看各种直播门户', controls)
 
     def play(self, url, show_result=False):
-        ret, info = match(url)
+
+        def call_get_real_url(module, ret):
+            if hasattr(module, 'get_real_url'):
+                return module.get_real_url(ret)
+            for name, obj in inspect.getmembers(module):
+                if inspect.isclass(obj):
+                    inst = obj(ret)
+                    if hasattr(inst, 'get_real_url'):
+                        return inst.get_real_url()
+            return False
+
+        ret, site = match(url)
         if ret:
-            module_name = info['module']
-            module = importlib.import_module(f'..realurl.{module_name}', package=__name__)
+            module_name = site['module']
+            module = importlib.import_module(f'..real-url.{module_name}', package=__name__)
             try:
-                stream_url = module.get_real_url(ret)
-                if 'key' in info:
-                    if callable(info['key']):
-                        stream_url = info['key'](stream_url)
+                stream_url = call_get_real_url(module, ret)
+                if not stream_url:
+                    self.player and self.player.toast('main', '直播不存在或者未开播')
+                    return
+                if 'key' in site:
+                    if callable(site['key']):
+                        stream_url = site['key'](stream_url)
                     else:
-                        stream_url = stream_url[info['key']]                     
+                        stream_url = stream_url[site['key']]                     
                 self.player.play(stream_url)
 
-                headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
-                r = requests.get(url, headers = headers)
-                print(r.status_code)
-                if r.status_code == 200:
-                    soup = bs(r.content, 'html.parser')
-                    title = soup.find('title')
-                    
-                    if show_result:
+                if show_result:
+                    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
+                    r = requests.get(url, headers = headers)
+                    print(r.status_code)
+                    if r.status_code == 200:
+                        soup = bs(r.content, 'html.parser')
+                        title = soup.find('title')
+                        
+                        
                         self.result = [{
                             'name': title.string,
                             'url': url
