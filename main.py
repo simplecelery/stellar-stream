@@ -4,9 +4,14 @@ import importlib
 import requests
 import json
 import inspect
+import os
+import sys
 
 from bs4 import BeautifulSoup as bs
 from .sites import match
+
+plugin_dir = os.path.dirname(__file__)
+sys.path.append(plugin_dir) # for js2py
 
 
 class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
