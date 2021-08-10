@@ -17,7 +17,6 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         ]
         self.favs = [
         ]
-        print(open)
 
     def show(self): 
         self.load_favs()
@@ -110,7 +109,6 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 if show_result:
                     headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
                     r = requests.get(url, headers = headers)
-                    print(r.status_code)
                     if r.status_code == 200:
                         soup = bs(r.content, 'html.parser')
                         title = soup.find('title')

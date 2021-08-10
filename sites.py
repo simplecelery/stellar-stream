@@ -4,7 +4,7 @@ import json
 sites = [
     {
         "name": "斗鱼直播",
-        "module": "douyu",
+        "module": "douyu1",
         "rule": r"https://www.douyu.com/([0-9A-Za-z]*)"
     },
     {
