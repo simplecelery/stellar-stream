@@ -2,7 +2,9 @@ import traceback
 import StellarPlayer
 import importlib
 import requests
+import threading
 import json
+import time
 import inspect
 import os
 import sys
@@ -22,9 +24,10 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         ]
         self.favs = [
         ]
+        self.stop_flag = False
+        self.load_favs()
 
     def show(self): 
-        self.load_favs()
         result_layout = [
             [
                 {
@@ -46,6 +49,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                     ],
                     'dir':'vertical',
                 },
+                {'type':'label', 'name':'online', 'width':100},
                 {'type':'link','name':'播放','width':50, '@click': 'on_play_fav_click'},
                 {'type':'link','name':'删除','width':50, '@click': 'on_del_fav_click'},
             ]
@@ -74,17 +78,42 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                             {'type':'list','name':'favs', 'itemheight':48, 'itemlayout': favs_layout, 'width': 0.8, ':value': 'favs','marginSize':5, 'separator': True},                              
                         ],
                         'dir':'vertical',
-                        'width': 0.8,
+                        'width': 0.9,
                     },                    
                     {'type':'space'}
                 ],
             }
         ]
         
-        result, controls = self.doModal('main', 800, 600, '看各种直播门户', controls)
+        self.doModal('main', 800, 600, '看各种直播门户', controls)
 
-    def play(self, url, show_result=False):
+    def start(self):
+        super().start()
+        t = threading.Thread(target=self.check_thread, daemon=True)
+        t.start()
 
+    def stop(self):
+        self.stop_flag = True
+        super().stop()
+
+    def check_thread(self):
+        last = 0
+        while not self.stop_flag:
+            time.sleep(0.1)
+            if time.time() - last > 60.0 * 5: # check every 5 minitue
+                last = time.time()
+                print("thread loop")
+                for fav in self.favs:
+                    if self.stop_flag:
+                        break
+                    time.sleep(0.1)
+                    print(f"check {fav['url']}")
+                    real_url, site = self.get_real_url(fav['url'])
+                    print(f"check ret {real_url}")
+                    fav['online'] = '在线' if real_url else '离线'
+                    self.favs = self.favs
+
+    def get_real_url(self, url):
         def call_get_real_url(module, ret):
             if hasattr(module, 'get_real_url'):
                 return module.get_real_url(ret)
@@ -96,38 +125,46 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
             return False
 
         ret, site = match(url)
-        print(ret, site)
+
         if ret:
             module_name = site['module']
             module = importlib.import_module(f'..real-url.{module_name}', package=__name__)
             try:
-                stream_url = call_get_real_url(module, ret)
-                if not stream_url:
-                    self.player and self.player.toast('main', '直播不存在或者未开播')
-                    return
-                if 'key' in site:
-                    if callable(site['key']):
-                        stream_url = site['key'](stream_url)
-                    else:
-                        stream_url = stream_url[site['key']]   
-                self.player and self.player.toast('main', '在播放器中打开')
-                self.player.play(stream_url)
-
-                if show_result:
-                    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
-                    r = requests.get(url, headers = headers)
-                    if r.status_code == 200:
-                        soup = bs(r.content, 'html.parser')
-                        title = soup.find('title')
-                        
-                        
-                        self.result = [{
-                            'name': title.string,
-                            'url': url
-                        }]
+                real_url = call_get_real_url(module, ret)
+                return real_url, site
             except Exception as e:
                 import traceback
                 traceback.print_exc()
+        return None, None
+
+    def play(self, url, show_result=False):
+        try:
+            real_url, site = self.get_real_url(url)
+            if not real_url:
+                self.player and self.player.toast('main', '直播不存在或者未开播')
+                return
+            if 'key' in site:
+                if callable(site['key']):
+                    real_url = site['key'](real_url)
+                else:
+                    real_url = real_url[site['key']]
+            self.player and self.player.toast('main', '在播放器中打开')
+            self.player.play(real_url)
+
+            if show_result:
+                headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
+                r = requests.get(url, headers = headers)
+                if r.status_code == 200:
+                    soup = bs(r.content, 'html.parser')
+                    title = soup.find('title')
+                    self.result = [{
+                        'name': title.string,
+                        'url': url,
+                        'online': '在线'
+                    }]
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
 
     def on_play_click(self, *args):
         self.result = []
@@ -152,13 +189,22 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
 
     def save_favs(self):        
         f = open("favs.json", "w")
-        f.write(json.dumps(self.favs, indent=4))
+        favs = []
+        for fav in self.favs:
+            favs.append({
+                'name': fav['name'],
+                'url': fav['url']
+            })
+        f.write(json.dumps(favs, indent=4))
         f.close()
 
     def load_favs(self):
         try:
             with open("favs.json") as f:
-                self.favs = json.loads(f.read())
+                favs = json.loads(f.read())
+                for fav in favs:
+                    fav['online'] = '正在检测'
+                self.favs = favs
         except FileNotFoundError:
             pass
     
