@@ -26,6 +26,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         ]
         self.stop_flag = False
         self.load_favs()
+        self.check_thread = None
 
     def show(self): 
         result_layout = [
@@ -84,19 +85,22 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 ],
             }
         ]
+
+        if self.check_thread is None:
+            print("create checking thread")
+            self.check_thread = threading.Thread(target=self.check, daemon=True)
+            self.check_thread.start()
         
         self.doModal('main', 800, 600, '看各种直播门户', controls)
 
     def start(self):
         super().start()
-        t = threading.Thread(target=self.check_thread, daemon=True)
-        t.start()
 
     def stop(self):
         self.stop_flag = True
         super().stop()
 
-    def check_thread(self):
+    def check(self):
         last = 0
         while not self.stop_flag:
             time.sleep(0.1)
