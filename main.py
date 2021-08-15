@@ -96,6 +96,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
             return False
 
         ret, site = match(url)
+        print(ret, site)
         if ret:
             module_name = site['module']
             module = importlib.import_module(f'..real-url.{module_name}', package=__name__)
@@ -108,7 +109,8 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                     if callable(site['key']):
                         stream_url = site['key'](stream_url)
                     else:
-                        stream_url = stream_url[site['key']]                     
+                        stream_url = stream_url[site['key']]   
+                self.player and self.player.toast('main', '在播放器中打开')
                 self.player.play(stream_url)
 
                 if show_result:
@@ -134,6 +136,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
 
     def on_play_fav_click(self, page, listControl, item, itemControl):
         url = self.favs[item]['url']
+        print(url)
         self.play(url, False)
 
     def on_add_fav_click(self, page, listControl, item, itemControl):
