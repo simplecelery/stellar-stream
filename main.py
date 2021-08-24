@@ -197,7 +197,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 else:
                     real_url = real_url[site['key']]
             self.player and self.player.toast('main', '在播放器中打开')
-            self.player.clearDanmu()
+            hasattr(self.player, "clearDanmu") and self.player.clearDanmu()
             self.player.play(real_url)
             self.real_url = real_url
             self.page_url = url
