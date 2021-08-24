@@ -4,55 +4,58 @@ import json
 sites = [
     {
         "name": "斗鱼直播",
-        "module": "douyu1",
+        "realurl": "douyu1",
+        "danmu": "douyu.Douyu",
         "rules": [r"^https://www.douyu.com/([0-9A-Za-z]*)$", r"https://www.douyu.com/topic/\w*\?rid=([0-9A-Za-z]*)"]
     },
     {
         "name": "虎牙直播",
-        "module": "huya",
-        "rules": r"https://www.huya.com/([0-9A-Za-z]*)",
+        "realurl": "huya",
+        "danmu": "huya.Huya",
+        "rules": [r"https://(?:www|m).huya.com/([0-9A-Za-z]*)"],
         "key": 'al_flv'
     },
     {
         "name": "龙珠直播",
-        "module": "longzhu",
+        "realurl": "longzhu",
         "rules": r"https://star.longzhu.com/([0-9A-Za-z]*)",
     },
     {
         "name": "花椒直播",
-        "module": "huajiao",
+        "realurl": "huajiao",
         "rules": r"https://star.huajiao.com/l/([0-9A-Za-z]*)",
     },
     {
         "name": "中国体育",
-        "module": "zhibotv",
+        "realurl": "zhibotv",
         "rules": r"http://v.zhibo.tv/([0-9A-Za-z]*)",
     },
     {
         "name": "西瓜视频",
-        "module": "ixigua",
+        "realurl": "ixigua",
         "rules": r"https://live.ixigua.com/([0-9A-Za-z]*)",
         "key": lambda x: json.loads(x)[0]['FlvUrl']
     },
     {
         "name": "企鹅电竞",
-        "module": "egame",
+        "realurl": "egame",
         "rules": r"https://egame.qq.com/([0-9A-Za-z]*)"
     },
     {
         "name": "棉花糖",
-        "module": "2cq",
+        "realurl": "2cq",
         "rules": r"https://www.2cq.com/([0-9A-Za-z]*)"
     },
     {
         "name": "bilibili",
-        "module": "bilibili",
+        "realurl": "bilibili",
         "rules": r"https://live.bilibili.com/([0-9A-Za-z]*)"
     }
 ]
 
 def match(url):
     for site in sites:
+        print(f'match {url=}, {site=}')
         rules = site['rules']
         if type(rules) is str:
             rules = [rules]

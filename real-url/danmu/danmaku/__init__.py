@@ -3,23 +3,23 @@ import re
 
 import aiohttp
 
-from .yqs import YiQiShan
-from .acfun import AcFun
+# from .yqs import YiQiShan
+# from .acfun import AcFun
 from .bilibili import Bilibili
-from .cc import CC
+# from .cc import CC
 from .douyu import Douyu
-from .egame import eGame
-from .huajiao import HuaJiao
-from .huomao import HuoMao
+# from .egame import eGame
+# from .huajiao import HuaJiao
+# from .huomao import HuoMao
 from .huya import Huya
-from .inke import Inke
-from .kuaishou import KuaiShou
-from .kugou import KuGou
-from .laifeng import LaiFeng
+# from .inke import Inke
+# from .kuaishou import KuaiShou
+# from .kugou import KuGou
+# from .laifeng import LaiFeng
 from .longzhu import LongZhu
-from .look import Look
-from .pps import QiXiu
-from .qf import QF
+# from .look import Look
+# from .pps import QiXiu
+# from .qf import QF
 from .zhanqi import ZhanQi
 # from .yy import YY
 
@@ -42,21 +42,21 @@ class DanmakuClient:
         for u, s in {'douyu.com': Douyu,
                      'live.bilibili.com': Bilibili,
                      'huya.com': Huya,
-                     'huomao.com': HuoMao,
-                     'kuaishou.com': KuaiShou,
-                     'egame.qq.com': eGame,
-                     'huajiao.com': HuaJiao,
-                     'inke.cn': Inke,
-                     'cc.163.com': CC,
-                     'fanxing.kugou.com': KuGou,
+                     # 'huomao.com': HuoMao,
+                     # 'kuaishou.com': KuaiShou,
+                     # 'egame.qq.com': eGame,
+                     # 'huajiao.com': HuaJiao,
+                     # 'inke.cn': Inke,
+                     # 'cc.163.com': CC,
+                     # 'fanxing.kugou.com': KuGou,
                      'zhanqi.tv': ZhanQi,
                      'longzhu.com': LongZhu,
-                     'pps.tv': QiXiu,
-                     'qf.56.com': QF,
-                     'laifeng.com': LaiFeng,
-                     'look.163.com': Look,
-                     'acfun.cn': AcFun,
-                     '173.com': YiQiShan,
+                     # 'pps.tv': QiXiu,
+                     # 'qf.56.com': QF,
+                     # 'laifeng.com': LaiFeng,
+                     # 'look.163.com': Look,
+                     # 'acfun.cn': AcFun,
+                     #'173.com': YiQiShan,
                      'yy.com': ''}.items():
             if re.match(r'^(?:http[s]?://)?.*?%s/(.+?)$' % u, url):
                 self.__site = s

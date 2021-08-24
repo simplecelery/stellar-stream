@@ -9,6 +9,7 @@ import inspect
 import os
 import sys
 
+
 from bs4 import BeautifulSoup as bs
 from .sites import match
 
@@ -27,6 +28,31 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         self.stop_flag = False
         self.load_favs()
         self.check_thread = None
+        self.danmu = None
+        self.page_url = ''
+        self.real_url = ''
+
+    def handleRequest(self, method, args):
+        if method == 'onPlay':
+            print('---------------onPlay')
+            url, = args
+            if self.real_url == url:
+                if self.danmu:
+                    self.danmu.stop()
+                    self.danmu = None
+                self.danmu = self.create_damnu_client(self.page_url)
+                if self.danmu:
+                    self.danmu.start(self.page_url, self.on_danmu)
+                    self.danmu.run()
+        elif method == 'onStop':
+            print('---------------onStop')
+            if self.danmu:
+                print('self.danmu.stop')
+                self.danmu.stop()
+                self.danmu = None
+                self.player.clearDanmu()
+        else:
+            print(f'handleRequest {method=} {args=}')
 
     def show(self): 
         result_layout = [
@@ -88,7 +114,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
 
         if self.check_thread is None:
             print("create checking thread")
-            self.check_thread = threading.Thread(target=self.check, daemon=True)
+            self.check_thread = threading.Thread(target=self.check_thread_func, daemon=True)
             self.check_thread.start()
         
         self.doModal('main', 800, 600, '看各种直播门户', controls)
@@ -100,7 +126,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         self.stop_flag = True
         super().stop()
 
-    def check(self):
+    def check_thread_func(self):
         last = 0
         while not self.stop_flag:
             time.sleep(0.1)
@@ -117,6 +143,24 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                     fav['online'] = '在线' if real_url else '离线'
                     self.favs = self.favs
 
+    def danmu_thread_func(self, url):
+        pass
+
+    def create_damnu_client(self, url):
+        ret, site = match(url)
+
+        print(f'create_damnu_client {ret=} {site=}')
+
+        if ret:
+            danmu = site.get('danmu')
+            if danmu:
+                print(danmu)
+                module_name, attr_name = danmu.rsplit('.', 1)
+                module = importlib.import_module(f'..dmclient.{module_name}', package=__name__)
+                Cls = getattr(module, attr_name)
+                return Cls()
+        return None
+
     def get_real_url(self, url):
         def call_get_real_url(module, ret):
             if hasattr(module, 'get_real_url'):
@@ -131,7 +175,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         ret, site = match(url)
 
         if ret:
-            module_name = site['module']
+            module_name = site['realurl']
             module = importlib.import_module(f'..real-url.{module_name}', package=__name__)
             try:
                 real_url = call_get_real_url(module, ret)
@@ -153,7 +197,10 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 else:
                     real_url = real_url[site['key']]
             self.player and self.player.toast('main', '在播放器中打开')
+            self.player.clearDanmu()
             self.player.play(real_url)
+            self.real_url = real_url
+            self.page_url = url
 
             if show_result:
                 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
@@ -169,6 +216,9 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         except Exception as e:
             import traceback
             traceback.print_exc()
+
+    def on_danmu(self, message):
+        self.player.addDanmu(message)
 
     def on_play_click(self, *args):
         self.result = []

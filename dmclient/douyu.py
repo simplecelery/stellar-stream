@@ -1,17 +1,21 @@
+
+import _thread
+import time
 import re
 import json
-import aiohttp
+import requests
+
 from struct import pack
 
+from . import DanmuClient
 
-class Douyu:
+
+class Douyu(DanmuClient):
     wss_url = 'wss://danmuproxy.douyu.com:8503/'
-    heartbeat = b'\x14\x00\x00\x00\x14\x00\x00\x00\xb1\x02\x00\x00\x74\x79\x70\x65\x40\x3d\x6d\x72\x6b\x6c' \
-                b'\x2f\x00 '
+    heartbeat = b'\x14\x00\x00\x00\x14\x00\x00\x00\xb1\x02\x00\x00\x74\x79\x70\x65\x40\x3d\x6d\x72\x6b\x6c\x2f\x00'
     heartbeatInterval = 60
 
-    @staticmethod
-    async def get_ws_info(url):
+    def get_ws_info(self, url):
         rules = [r"^https://www.douyu.com/([0-9A-Za-z]*)$", r"https://www.douyu.com/topic/\w*\?rid=([0-9A-Za-z]*)"]
         room_id = ''
         for rule in rules:
@@ -21,10 +25,9 @@ class Douyu:
                 break
         if not room_id:
             raise RuntimeError('invalid douyu url')
-        async with aiohttp.ClientSession() as session:
-            async with session.get('https://m.douyu.com/' + str(room_id)) as resp:
-                room_page = await resp.text()
-                room_id = re.findall(r'"rid":(\d{1,7})', room_page)[0]
+        resp = requests.get(f'https://m.douyu.com/{room_id}')
+        room_page = resp.text
+        room_id = re.findall(r'"rid":(\d{1,7})', room_page)[0]        
         reg_datas = []
         data = f'type@=loginreq/roomid@={room_id}/'
         s = pack('i', 9 + len(data)) * 2
@@ -38,8 +41,7 @@ class Douyu:
         reg_datas.append(s)
         return Douyu.wss_url, reg_datas
 
-    @staticmethod
-    def decode_msg(data):
+    def decode_msg(self, data):
         msgs = []
         for msg in re.findall(b'(type@=.*?)\x00', data):
             try:
@@ -54,3 +56,14 @@ class Douyu:
             except Exception as e:
                 pass
         return msgs
+
+
+def main():
+    # websocket.enableTrace(True)
+    client = Douyu()
+    client.start('https://www.douyu.com/48699')
+    client.run_forever()
+    print("the end")
+
+if __name__ == "main":
+    main()
