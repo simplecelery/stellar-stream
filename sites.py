@@ -13,7 +13,7 @@ sites = [
         "realurl": "huya",
         "danmu": "huya.Huya",
         "rules": [r"https://(?:www|m).huya.com/([0-9A-Za-z]*)"],
-        "key": 'al_flv'
+        "key": lambda x: x['al_flv'] if 'al_flv' in x else [*x.values()][0]
     },
     {
         "name": "龙珠直播",
