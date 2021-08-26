@@ -44,7 +44,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 if self.danmu:
                     self.danmu.start(self.page_url, self.on_danmu)
                     self.danmu.run()
-        elif method == 'onStop':
+        elif method == 'onStopPlay':
             print('---------------onStop')
             if self.danmu:
                 print('self.danmu.stop')
@@ -82,7 +82,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
             ]
         ]     
         controls = [
-            {'type':'space','height':50},
+            {'type':'space','height':20},
             {
                 'group': [
                     {'type':'space'},
@@ -92,7 +92,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 ],
                 'height':30
             },            
-            {'type':'space', 'height':10},
+            {'type':'space', 'height':20},
 
             {  
                 'group': [
@@ -100,15 +100,16 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                     {
                         'group': [
                             {'type':'list','name':'result', 'height': 48, 'itemheight':48, 'itemlayout': result_layout, ':value': 'result','marginSize':5},
-                            {'type':'space', 'height':10},   
+                            {'type':'space', 'height':10 },   
                             {'type':'label','name': '收藏列表', 'height':30},  
-                            {'type':'list','name':'favs', 'itemheight':48, 'itemlayout': favs_layout, 'width': 0.8, ':value': 'favs','marginSize':5, 'separator': True},                              
+                            {'type':'list','name':'favs', 'itemheight':48, 'itemlayout': favs_layout, ':value': 'favs','marginSize':5, 'separator': True},                              
                         ],
                         'dir':'vertical',
                         'width': 0.9,
                     },                    
                     {'type':'space'}
                 ],
+                'width': 1.0
             }
         ]
 

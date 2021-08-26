@@ -16,7 +16,8 @@ class DanmuClient:
         self.ws = self.connect(ws_url)
 
     def stop(self):
-        self.ws.close()
+        if self.ws:
+            self.ws.close()
         print("self.ws.close()~~~~~~~~~~~~~~")
 
     def connect(self, ws_url):
