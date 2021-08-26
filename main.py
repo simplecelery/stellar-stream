@@ -31,6 +31,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         self.danmu = None
         self.page_url = ''
         self.real_url = ''
+        self.danmuShow = True
 
     def handleRequest(self, method, args):
         if method == 'onPlay':
@@ -86,8 +87,9 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
             {
                 'group': [
                     {'type':'space'},
-                    {'type':'edit','name':'search','height':30, 'width':0.7, 'label': ' ', '@input': 'on_search_input', ':value': 'q'},  
+                    {'type':'edit','name':'search','height':30, 'width':0.6, 'label': ' ', '@input': 'on_search_input', ':value': 'q'},  
                     {'type':'button','name':'播放', 'height':30, 'width':0.1, '@click': 'on_play_click'},  
+                    {'type':'check', 'name':'显示弹幕', '@click': 'on_toggle_danmu_click', ':value': 'danmuShow'},
                     {'type':'space'},
                 ],
                 'height':30
@@ -242,6 +244,10 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         self.favs.pop(item)
         self.favs = self.favs
         self.save_favs()
+
+    def on_toggle_danmu_click(self, *a):
+        self.player.showDanmu(self.danmuShow)
+        print(f'{a=}, {self.danmuShow=}')
 
     def save_favs(self):        
         f = open("favs.json", "w")
