@@ -119,7 +119,8 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
             print("create checking thread")
             self.check_thread = threading.Thread(target=self.check_thread_func, daemon=True)
             self.check_thread.start()
-        
+
+        self.player.showDanmu(self.danmuShow)        
         self.doModal('main', 800, 600, '看各种直播门户', controls)
 
     def start(self):
