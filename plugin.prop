@@ -1,4 +1,5 @@
 name=第三方直播
 description=看第三方直播
-version=0.10
+version=0.11
 url=https://github.com/simplecelery/stellar-stream
+type=直播
