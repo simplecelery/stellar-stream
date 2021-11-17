@@ -189,7 +189,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 traceback.print_exc()
         return None, None
 
-    def play(self, url, show_result=False):
+    def play(self, url, caption, show_result=False):
         try:
             real_url, site = self.get_real_url(url)
             if not real_url:
@@ -201,9 +201,12 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 else:
                     print(real_url)
                     real_url = real_url[site['key']]
-            self.player and self.player.toast('main', '在播放器中打开')
             hasattr(self.player, "clearDanmu") and self.player.clearDanmu()
-            self.player.play(real_url)
+            try:
+                self.player.play(real_url, caption=caption)
+            except:
+                self.player.play(real_url)
+            
             self.real_url = real_url
             self.page_url = url
 
@@ -218,6 +221,8 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                         'url': url,
                         'online': '在线'
                     }]
+                    if self.player.setCaption : 
+                        self.player.setCaption(title)
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -228,12 +233,12 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
     def on_play_click(self, *args):
         self.result = []
         url = self.q
-        self.play(url, True)
+        self.play(url, None, True)
 
     def on_play_fav_click(self, page, listControl, item, itemControl):
         url = self.favs[item]['url']
-        print(url)
-        self.play(url, False)
+        name = self.favs[item]['name']
+        self.play(url, name, False)
 
     def on_add_fav_click(self, page, listControl, item, itemControl):
         if self.result[0] not in self.favs:
