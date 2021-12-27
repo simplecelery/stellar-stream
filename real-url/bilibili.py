@@ -11,41 +11,30 @@ import requests
 class BiliBili:
 
     def __init__(self, rid):
+        """
+        有些地址无法在PotPlayer播放，建议换个播放器试试
+        Args:
+            rid:
+        """
         self.rid = rid
 
     def get_real_url(self):
+        self.header = {
+            'User-Agent': 'Mozilla/5.0 (iPod; CPU iPhone OS 14_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, '
+                          'like Gecko) CriOS/87.0.4280.163 Mobile/15E148 Safari/604.1',
+        }
         # 先获取直播状态和真实房间号
-        r_url = 'https://api.live.bilibili.com/room/v1/Room/room_init?id={}'.format(self.rid)
-        with requests.Session() as s:
-            res = s.get(r_url).json()
-        code = res['code']
-        if code == 0:
-            live_status = res['data']['live_status']
-            if live_status == 1:
-                room_id = res['data']['room_id']
-
-                def u(pf):
-                    f_url = 'https://api.live.bilibili.com/xlive/web-room/v1/playUrl/playUrl'
-                    params = {
-                        'cid': room_id,
-                        'platform': pf,
-                        'otype': 'json',
-                        'quality': 0
-                    }
-                    resp = s.get(f_url, params=params).json()
-                    try:
-                        durl = resp['data']['durl']
-                        real_url = durl[0]['url']
-                        real_url = re.sub(r'live_(\d+)_(\d+)_\d+.m3u8', r'live_\1_\2.m3u8', real_url)
-                        return real_url
-                    except KeyError or IndexError:
-                        raise Exception('获取失败')
-
-                return u('h5')
-            else:
-                raise Exception('未开播')
-        else:
-            raise Exception('房间不存在')
+        r_url = 'http://api.live.bilibili.com/room/v1/Room/playUrl'
+        param = {
+            'cid': self.rid,
+            'qn': 10000,
+            'platform': 'web'
+        }
+        with requests.Session() as self.s:
+            res = self.s.get(r_url, headers=self.header, params=param).json()
+        if res['code'] != 0:
+            raise Exception(f'bilibili {self.rid} {res["message"]}')
+        return res["data"]["durl"][0]["url"]
 
 
 def get_real_url(rid):

@@ -73,7 +73,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 {
                    'group': [
                         {'type':'label','name':'name'},
-                        {'type':'label','name':'url'},
+                        {'type':'link','name':'url'},
                     ],
                     'dir':'vertical',
                 },
@@ -180,6 +180,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
 
         if ret:
             module_name = site['realurl']
+            print(f'get real url : {module_name}')
             module = importlib.import_module(f'..real-url.{module_name}', package=__name__)
             try:
                 real_url = call_get_real_url(module, ret)
@@ -217,12 +218,12 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                     soup = bs(r.content, 'html.parser')
                     title = soup.find('title')
                     self.result = [{
-                        'name': title.string,
+                        'name': title.string[:30],
                         'url': url,
                         'online': '在线'
                     }]
                     if self.player.setCaption : 
-                        self.player.setCaption(title)
+                        self.player.setCaption(title.string)
         except Exception as e:
             import traceback
             traceback.print_exc()
