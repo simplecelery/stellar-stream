@@ -203,10 +203,11 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                     print(real_url)
                     real_url = real_url[site['key']]
             hasattr(self.player, "clearDanmu") and self.player.clearDanmu()
+            headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36', 'referer': url}
             try:
-                self.player.play(real_url, caption=caption)
+                self.player.play(real_url, caption=caption, headers=headers)
             except:
-                self.player.play(real_url)
+                self.player.play(real_url, headers=headers)
             
             self.real_url = real_url
             self.page_url = url
