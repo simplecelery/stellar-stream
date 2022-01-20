@@ -54,7 +54,6 @@ sites = [
 
 def match(url):
     for site in sites:
-        print(f'match {url=}, {site=}')
         rules = site['rules']
         if type(rules) is str:
             rules = [rules]

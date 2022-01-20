@@ -16,6 +16,8 @@ from .sites import match
 plugin_dir = os.path.dirname(__file__)
 sys.path.append(plugin_dir) # for js2py
 
+DEFAULT_IMAGE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQMAAADCCAMAAAB6zFdcAAAAQlBMVEX///+hoaGenp6ampr39/fHx8fOzs7j4+P8/Pyvr6/d3d3FxcX29va6urqYmJjs7OzU1NSlpaW1tbWtra3n5+e/v78TS0zBAAACkUlEQVR4nO3b63KCMBCGYUwUUVEO6v3fagWVY4LYZMbZnff51xaZ5jON7CZNEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQb5tvI8qzX4/nH84XG5Upfj2ir2V2E5fZ/XpIX9saMnhkYLIkiyRJjdgMoiEDMmiQgfwM8rSu77ew2wnPoLTmwdZBs0J2BuXrYckcQm4nOoP+WcmWAbcTnUHZPy9eA24nOoN7n0HI54ToDM5k8PjluwyqgNuJzqDoaugPg8gWZ4noDAYLwuIg75fLeeHHsjNIzrZJwWwW+0DNsmEWPjiEZ5AcD8ZUu8VZ8HyQMifvBdIz+PS33i8adu+7Qn4Gn1Tdupl7rlCfQb9seosK7RkcBy1o30iVZ5CPOtDW3WhQnsF13IV3v0p3BqfJRoSpXVepzmA/24+yqeMyzRm4tqOs44lSUwa3yfgOri25av5CPRnklR33VlPnrqSZV09qMsiqSWV082xOz1uPajJ49pTM/f115k6guWa6JGjJ4N1lt8fXN2rv/vysjFaSQdFXBc/KKF04ptFPliclGVR9Bu27XCyeVOkmy5OODAZN9rYyyip/AIPJ8qIig+PoXbf7YdPdncFoSdCQQT4ZceV+MhiFMBy0hgyu0yGvOLI17KwpyGBaHK5jtt0N5GcwLw7XZdB31sRn8O+ziqYro8Vn4CwOV+k6a9Iz+PwRsKC7h+gMfMXhKu/OmuwM/MXhKq8yWnYG/uJw5Uxoy2jRGZTBZ/jboxuSM1guDtdNhKazJjiDbNMe0AxzKUVnkO+jEJxBxNtJzWCTxlNLzSB8KehJ/H+mJGYAjaDjzj9SnHZRuXZiAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAECXP1XDHv7U4SNFAAAAAElFTkSuQmCC'
+
 
 class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
@@ -38,6 +40,22 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
             print('---------------onPlay')
             url, = args
             if self.real_url == url:
+                if self.player.getSnapshot:
+                    time.sleep(2.0)
+                    image = self.player.getSnapshot({'width': 100, 'height': 100})
+                    for item in self.result:
+                        if item['url'] == self.page_url:
+                            item['image'] = 'data:image/png;base64,' + image
+                            self.result = self.result
+                            break
+                    for item in self.favs:
+                        if item['url'] == self.page_url:
+                            print(f'update image {self.page_url}')
+                            item['image'] = 'data:image/png;base64,' + image
+                            self.favs = self.favs
+                            self.save_favs()
+                            break
+                
                 if self.danmu:
                     self.danmu.stop()
                     self.danmu = None
@@ -58,28 +76,43 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
     def show(self): 
         result_layout = [
             [
+                {'type':'image', 'name':'image', 'width':120},
+                {'type':'space','width':10},
                 {
                     'group': [
                         {'type':'label','name':'name'},
-                        {'type':'label','name':'url'},
+                        {'type':'link','name':'url', 'height':20},
+                        {'type':'link','name':'收藏','width':50, '@click': 'on_add_fav_click'},
                     ],
                     'dir':'vertical',
-                },                
-                {'type':'link','name':'收藏','width':50, '@click': 'on_add_fav_click'},
+                }
             ]
         ]
         favs_layout = [            
             [   
+                {'type':'image', 'name':'image', 'width':120},
+                {'type':'space','width':10},
                 {
                    'group': [
-                        {'type':'label','name':'name'},
-                        {'type':'link','name':'url'},
+                        {'type':'label','name':'name', 'height':20},
+                        {'type':'link','name':'url', 'height':20},
+                        {'type':'label', 'name':'online', 'height':20, 'matchParent':True},
+                        {
+                            'group': [
+                                {'type':'link','name':'播放','width':50, 'matchParent':True, '@click': 'on_play_fav_click'},
+                                {'type':'link','name':'删除','width':50, 'matchParent':True, '@click': 'on_del_fav_click'},
+                            ]
+                        },
+                        # {'group':
+                        #     [
+                        #         {'type':'button','name':'删除','width':60,'matchParent':True, '@click':'on_list_del_click'},
+                        #         {'type':'button','name':'删除2','width':60,'matchParent':True, '@click':'on_list_del_click'},
+                        #         {'type':'button','name':'删除3','width':60,'matchParent':True, '@click':'on_list_del_click'},
+                        #     ]
+                        # },
                     ],
                     'dir':'vertical',
-                },
-                {'type':'label', 'name':'online', 'width':100},
-                {'type':'link','name':'播放','width':50, '@click': 'on_play_fav_click'},
-                {'type':'link','name':'删除','width':50, '@click': 'on_del_fav_click'},
+                }
             ]
         ]     
         controls = [
@@ -101,10 +134,10 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                     {'type':'space'},
                     {
                         'group': [
-                            {'type':'list','name':'result', 'height': 48, 'itemheight':48, 'itemlayout': result_layout, ':value': 'result','marginSize':5},
+                            {'type':'list','name':'result', 'height': 80, 'itemheight':80, 'itemlayout': result_layout, ':value': 'result','marginSize':5},
                             {'type':'space', 'height':10 },   
                             {'type':'label','name': '收藏列表', 'height':30},  
-                            {'type':'list','name':'favs', 'itemheight':48, 'itemlayout': favs_layout, ':value': 'favs','marginSize':5, 'separator': True},                              
+                            {'type':'list','name':'favs', 'itemheight':80, 'itemlayout': favs_layout, ':value': 'favs','marginSize':5, 'separator': True},                              
                         ],
                         'dir':'vertical',
                         'width': 0.9,
@@ -221,7 +254,8 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                     self.result = [{
                         'name': title.string[:30],
                         'url': url,
-                        'online': '在线'
+                        'online': '在线',
+                        'image': DEFAULT_IMAGE
                     }]
                     if self.player.setCaption : 
                         self.player.setCaption(title.string)
@@ -243,7 +277,10 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         self.play(url, name, False)
 
     def on_add_fav_click(self, page, listControl, item, itemControl):
-        if self.result[0] not in self.favs:
+        if len(self.result) == 0: return
+        url = self.result[0]['url']
+
+        if len(list(filter(lambda x: x['url'] == url, self.favs))) == 0:
             self.favs = self.favs + self.result
             self.result = []
             self.save_favs()
@@ -263,7 +300,8 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         for fav in self.favs:
             favs.append({
                 'name': fav['name'],
-                'url': fav['url']
+                'url': fav['url'],
+                'image': fav['image']
             })
         f.write(json.dumps(favs, indent=4))
         f.close()
@@ -274,6 +312,8 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
                 favs = json.loads(f.read())
                 for fav in favs:
                     fav['online'] = '正在检测'
+                    if 'image' not in fav:
+                        fav['image'] = DEFAULT_IMAGE
                 self.favs = favs
         except FileNotFoundError:
             pass
