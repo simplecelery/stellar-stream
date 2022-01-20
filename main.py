@@ -281,7 +281,7 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         url = self.result[0]['url']
 
         if len(list(filter(lambda x: x['url'] == url, self.favs))) == 0:
-            self.favs = self.favs + self.result
+            self.favs = self.result + self.favs
             self.result = []
             self.save_favs()
 
