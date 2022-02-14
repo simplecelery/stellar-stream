@@ -48,6 +48,7 @@ sites = [
     {
         "name": "bilibili",
         "realurl": "bilibili",
+        "danmu": "bilibili.Bilibili",
         "rules": r"https://live.bilibili.com/([0-9A-Za-z]*)"
     }
 ]
