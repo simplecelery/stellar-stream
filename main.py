@@ -116,36 +116,26 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
             ]
         ]     
         controls = [
-            {'type':'space','height':20},
             {
                 'group': [
-                    {'type':'space'},
+                    {'type':'label','name':'直播间地址'},
                     {'type':'edit','name':'search','height':30, 'width':0.6, 'label': ' ', '@input': 'on_search_input', ':value': 'q'},  
                     {'type':'button','name':'播放', 'height':30, 'width':0.1, '@click': 'on_play_click'},  
                     {'type':'check', 'name':'显示弹幕', '@click': 'on_toggle_danmu_click', ':value': 'danmuShow'},
-                    {'type':'space'},
                 ],
                 'height':30
             },            
-            {'type':'space', 'height':20},
 
-            {  
+            {
                 'group': [
-                    {'type':'space'},
-                    {
-                        'group': [
-                            {'type':'list','name':'result', 'height': 80, 'itemheight':80, 'itemlayout': result_layout, ':value': 'result','marginSize':5},
-                            {'type':'space', 'height':10 },   
-                            {'type':'label','name': '收藏列表', 'height':30},  
-                            {'type':'list','name':'favs', 'itemheight':80, 'itemlayout': favs_layout, ':value': 'favs','marginSize':5, 'separator': True},                              
-                        ],
-                        'dir':'vertical',
-                        'width': 0.9,
-                    },                    
-                    {'type':'space'}
+                    {'type':'list','name':'result', 'height': 80, 'itemheight':80, 'itemlayout': result_layout, ':value': 'result','marginSize':5},
+                    {'type':'space', 'height':10 },   
+                    {'type':'label','name': '收藏列表', 'height':30},  
+                    {'type':'list','name':'favs', 'itemheight':80, 'itemlayout': favs_layout, ':value': 'favs','marginSize':5, 'separator': True},                              
                 ],
+                'dir':'vertical',
                 'width': 1.0
-            }
+            },
         ]
 
         if self.check_thread is None:

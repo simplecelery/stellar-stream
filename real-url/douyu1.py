@@ -59,10 +59,12 @@ class DouYu:
         error = res['error']
         data = res['data']
         key = ''
+        url = ''
         if data:
             rtmp_live = data['rtmp_live']
-            key = re.search(r'(\d{1,7}[0-9a-zA-Z]+)_?\d{0,4}(/playlist|.m3u8)', rtmp_live).group(1)
-        return error, key
+            url = data['rtmp_url'] + '/' + rtmp_live
+            key = re.search(r'(\d{1,8}[0-9a-zA-Z]+)_?\d{0,4}(/playlist|.m3u8)', rtmp_live).group(1)
+        return error, key, url
 
     def get_js(self):
         result = re.search(r'(function ub98484234.*)\s(var.*)', self.res).group()
@@ -70,20 +72,23 @@ class DouYu:
         ctx = js2py.EvalJs({})
         ctx.execute(func_ub9)
         res = ctx.ub98484234()
+        
         v = re.search(r'v=(\d+)', res).group(1)
         rb = DouYu.md5(self.rid + self.did + self.t10 + v)
+        
         func_sign = re.sub(r'return rt;}\);?', 'return rt;}', res)
         func_sign = func_sign.replace('(function (', 'function sign(')
         func_sign = func_sign.replace('CryptoJS.MD5(cb).toString()', '"' + rb + '"')
+        
         ctx.execute(func_sign)
         params = ctx.sign(self.rid, self.did, self.t10)
         params += '&ver=219032101&rid={}&rate=-1'.format(self.rid)
 
         url = 'https://m.douyu.com/api/room/ratestream'
-        res = self.s.post(url, params=params).text
-        key = re.search(r'(\d{1,7}[0-9a-zA-Z]+)_?\d{0,4}(.m3u8|/playlist)', res).group(1)
+        res = self.s.post(url, params=params, timeout=30).json()['data']
+        key = re.search(r'(\d{1,7}[0-9a-zA-Z]+)_?\d{0,4}(.m3u8|/playlist)', res['url']).group(1)
 
-        return key
+        return key, res['url']
 
     def get_pc_js(self, cdn='ws-h5', rate=0):
         """
@@ -112,19 +117,21 @@ class DouYu:
         url = 'https://www.douyu.com/lapi/live/getH5Play/{}'.format(self.rid)
         res = self.s.post(url, params=params).json()
 
-        return res
+        return res['rtmp_url'] + '/' + res['rtmp_live']
 
     def get_real_url(self):
-        error, key = self.get_pre()
+        ret = {}
+        error, key, url = self.get_pre()
         if error == 0:
-            pass
+            ret['900p'] = url
         elif error == 102:
             raise Exception('房间不存在')
         elif error == 104:
             raise Exception('房间未开播')
-        else:
-            key = self.get_js()
-        return "http://dyscdnali1.douyucdn.cn/live/{}.flv?uuid=".format(key)
+        #else:
+        key, url = self.get_js()
+        #ret['flv'] = "http://dyscdnali1.douyucdn.cn/live/{}.flv?uuid=".format(key)
+        return url
 
 
 if __name__ == '__main__':
