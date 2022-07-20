@@ -35,41 +35,48 @@ class MyPlugin(StellarPlayer.IStellarPlayerPlugin):
         self.real_url = ''
         self.danmuShow = True
 
-    def handleRequest(self, method, args):
-        if method == 'onPlay':
-            print('---------------onPlay')
-            url, = args
-            if self.real_url == url:
-                if self.player.getSnapshot:
-                    time.sleep(2.0)
-                    image = self.player.getSnapshot({'width': 100, 'height': 100})
-                    for item in self.result:
-                        if item['url'] == self.page_url:
-                            item['image'] = 'data:image/png;base64,' + image
-                            self.result = self.result
-                            break
-                    for item in self.favs:
-                        if item['url'] == self.page_url:
-                            print(f'update image {self.page_url}')
-                            item['image'] = 'data:image/png;base64,' + image
-                            self.favs = self.favs
-                            self.save_favs()
-                            break
-                
-                if self.danmu:
-                    self.danmu.stop()
-                    self.danmu = None
-                self.danmu = self.create_damnu_client(self.page_url)
-                if self.danmu:
-                    self.danmu.start(self.page_url, self.on_danmu)
-                    self.danmu.run()
-        elif method == 'onStopPlay':
-            print('---------------onStop')
+    def onPlay(self, *args):
+        print('---------------onPlay')  
+        url, = args
+        if self.real_url == url:
+            if self.player.getSnapshot:
+                time.sleep(2.0)
+                image = self.player.getSnapshot({'width': 100, 'height': 100})
+                for item in self.result:
+                    if item['url'] == self.page_url:
+                        item['image'] = 'data:image/png;base64,' + image
+                        self.result = self.result
+                        break
+                for item in self.favs:
+                    if item['url'] == self.page_url:
+                        print(f'update image {self.page_url}')
+                        item['image'] = 'data:image/png;base64,' + image
+                        self.favs = self.favs
+                        self.save_favs()
+                        break
+            
             if self.danmu:
-                print('self.danmu.stop')
                 self.danmu.stop()
                 self.danmu = None
-                self.player.clearDanmu()
+            self.danmu = self.create_damnu_client(self.page_url)
+            if self.danmu:
+                self.danmu.start(self.page_url, self.on_danmu)
+                self.danmu.run()
+
+    def onStopPlay(self, *_):
+        print('---------------onStopPlay')
+        if self.danmu:
+            print('self.danmu.stop')
+            self.danmu.stop()
+            self.danmu = None
+            self.player.clearDanmu()
+
+    def onPause(self, *args):
+        pass
+
+    def handleRequest(self, method, args):
+        if hasattr(self, method) and callable(getattr(self, method)):
+            getattr(self, method)(*args)
         else:
             print(f'handleRequest {method=} {args=}')
 
